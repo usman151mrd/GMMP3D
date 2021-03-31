@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     # Model parameters
     parser.add_argument('--input_size', type=int, default=18, help='dimension of the input vector')
-    parser.add_argument('--output_size', type=int, default=2, help='dimension of the input vector')
+    parser.add_argument('--output_size', type=int, default=3, help='dimension of the input vector')
     parser.add_argument('--hidden_size', type=int, default=256, help='dimension of lstm hidden states')
     parser.add_argument('--num_layers', type=int, default=4, help='number of layers in lstm')
 

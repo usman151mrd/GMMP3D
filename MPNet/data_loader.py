@@ -63,7 +63,7 @@ def load_dataset(N=100, NP=4000):  # N=100, NP=4000
                 if len(path) > max_length:
                     max_length = len(path)
 
-    paths = np.zeros((N, NP, max_length, 2), dtype=np.float32)  ## padded paths
+    paths = np.zeros((N, NP, max_length, 3), dtype=np.float32)  ## padded paths
 
     for i in range(0, N):
         for j in range(0, NP):

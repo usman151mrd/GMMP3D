@@ -13,8 +13,8 @@ def load_dataset(N=30000,NP=1800):
 
 	obstacles=np.zeros((N,6000),dtype=np.float32)
 	for i in range(4,N):
-		temp=np.fromfile('/home/muhayy/MPNet3D/dataset2/obs_cloud/obc'+str(i)+'.dat')
-		temp=temp.reshape(len(temp)//2,2)
+		temp=np.fromfile('../../dataset2/obs_cloud/obc'+str(i)+'.dat')
+		temp=temp.reshape(len(temp)//3,3)
 		obstacles[i]=temp.flatten()
 
 	
