@@ -49,6 +49,9 @@ def load_dataset(N=100, NP=4000):  # N=100, NP=4000
         output = output.data.cpu()
         obs_rep[i] = output.numpy()
 
+
+    print("obs_rep shape")
+
     ## calculating length of the longest trajectory
     max_length = 0
     path_lengths = np.zeros((N, NP), dtype=np.int8)
@@ -82,13 +85,15 @@ def load_dataset(N=100, NP=4000):  # N=100, NP=4000
         for j in range(0, NP):
             if path_lengths[i][j] > 0:
                 for m in range(0, path_lengths[i][j] - 1):
-                    data = np.zeros(32, dtype=np.float32)
+                    data = np.zeros(34, dtype=np.float32)
                     for k in range(0, 28):
                         data[k] = obs_rep[i][k]
                     data[28] = paths[i][j][m][0]
                     data[29] = paths[i][j][m][1]
-                    data[30] = paths[i][j][path_lengths[i][j] - 1][0]
-                    data[31] = paths[i][j][path_lengths[i][j] - 1][1]
+                    data[30] = paths[i][j][m][2]
+                    data[31] = paths[i][j][path_lengths[i][j] - 1][0]
+                    data[32] = paths[i][j][path_lengths[i][j] - 1][1]
+                    data[33] = paths[i][j][path_lengths[i][j] - 1][2]
                     # print("Data at line 91 ",data)
                     # print("Path at line 92 ", paths[i][j][m + 1])
                     targets.append(paths[i][j][m + 1])
@@ -106,7 +111,7 @@ def load_dataset(N=100, NP=4000):  # N=100, NP=4000
 # N=number of environments; NP=Number of Paths; s=starting environment no.; sp=starting_path_no
 # Unseen_environments==> N=10, NP=2000,s=100, sp=0
 # seen_environments==> N=100, NP=200,s=0, sp=4000
-def load_test_dataset(N=100, NP=200, s=7, sp=4000):
+def load_test_dataset(N=10, NP=5, s=5, sp=5):
     obc = np.zeros((N, 10, 3), dtype=np.float32)
     temp = np.fromfile('../dataset2/obs.dat')
     obs = temp.reshape(len(temp) // 3, 3)

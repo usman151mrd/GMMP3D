@@ -13,7 +13,7 @@ import time
 size = 5.0
 
 # Load trained model for path generation
-mlp = MLP(32, 3)  # simple @D
+mlp = MLP(34, 3)  # simple @D
 mlp.load_state_dict(torch.load('models/mlp_100_4000_PReLU_ae_dd150.pkl'))
 
 if torch.cuda.is_available():
@@ -22,20 +22,21 @@ if torch.cuda.is_available():
 # load test dataset
 obc, obstacles, paths, path_lengths = load_test_dataset()
 
+print(type(obc), obc.shape)
+print(type(obstacles), obstacles.shape)
+print(type(paths), paths.shape)
+print(type(path_lengths), path_lengths.shape)
 
-print(type(obc),obc.shape)
-print(type(obstacles),obstacles.shape)
-print(type(paths),paths.shape)
-print(type(path_lengths),path_lengths.shape)
 
 def IsInCollision(x, idx):
-    s = np.zeros(2, dtype=np.float32)
+    s = np.zeros(3, dtype=np.float32)
     s[0] = x[0]
     s[1] = x[1]
-    for i in range(0, 7):
+    s[2] = x[2]
+    for i in range(0, 10):
         cf = True
-        for j in range(0, 2):
-            if abs(obc[idx][i][j] - s[j]) > size / 2.0:
+        for j in range(0, 3):
+            if abs(obc[idx][i][j] - s[j]) > size / 3.0:
                 cf = False
                 break
         if cf == True:
@@ -45,31 +46,31 @@ def IsInCollision(x, idx):
 
 def steerTo(start, end, idx):
     DISCRETIZATION_STEP = 0.01
-    dists = np.zeros(2, dtype=np.float32)
-    for i in range(0, 2):
+    dists = np.zeros(3, dtype=np.float32)
+    for i in range(0, 3):
         dists[i] = end[i] - start[i]
 
     distTotal = 0.0
-    for i in range(0, 2):
+    for i in range(0, 3):
         distTotal = distTotal + dists[i] * dists[i]
 
     distTotal = math.sqrt(distTotal)
     if distTotal > 0:
         incrementTotal = distTotal / DISCRETIZATION_STEP
-        for i in range(0, 2):
+        for i in range(0, 3):
             dists[i] = dists[i] / incrementTotal
 
         numSegments = int(math.floor(incrementTotal))
 
-        stateCurr = np.zeros(2, dtype=np.float32)
-        for i in range(0, 2):
+        stateCurr = np.zeros(3, dtype=np.float32)
+        for i in range(0, 3):
             stateCurr[i] = start[i]
         for i in range(0, numSegments):
 
             if IsInCollision(stateCurr, idx):
                 return 0
 
-            for j in range(0, 2):
+            for j in range(0, 3):
                 stateCurr[j] = stateCurr[j] + dists[j]
 
         if IsInCollision(end, idx):
@@ -247,9 +248,10 @@ def main(args):
     tot = []
     X = []
     Y = []
+    z = []
     for i in range(0, 1):
         et = []
-        for j in range(0, 2):
+        for j in range(0, 3):
             # print ("step: i="+str(i)+" j="+str(j))
             p1_ind = 0
             p2_ind = 0
@@ -273,10 +275,8 @@ def main(args):
                 obs = obstacles[i]
                 obs = torch.from_numpy(obs)
                 ##generated paths
-                path1 = []
-                path1.append(start1)
-                path2 = []
-                path2.append(start2)
+                path1 = [start1]
+                path2 = [start2]
                 path = []
                 target_reached = 0
                 step = 0
@@ -287,7 +287,6 @@ def main(args):
                     step = step + 1
                     if tree == 0:
                         inp1 = torch.cat((obs, start1, start2))
-                        print(inp1.shape)
                         inp1 = to_var(inp1)
                         start1 = mlp(inp1)
                         start1 = start1.data.cpu()
@@ -296,7 +295,6 @@ def main(args):
                     else:
                         inp2 = torch.cat((obs, start2, start1))
                         inp2 = to_var(inp2)
-                        print(inp2.shape)
                         start2 = mlp(inp2)
                         start2 = start2.data.cpu()
                         path2.append(start2)
@@ -317,32 +315,17 @@ def main(args):
                         t = toc - tic
                         et.append(t)
                         fp = fp + 1
-                        print("path[0]:")
+                        # print("path[0]:")
                         for p in range(0, len(path)):
-                            print(path[p][0])
-                        print("path[1]:")
+                            print(float(path[p][0]))
+                        # print("path[1]:")
                         for p in range(0, len(path)):
-                            print(path[p][1])
-                        # print ("Actual path[0]:")
-                        # f = open('../results/env_0/path_1.txt', 'w')
-                        # for p in range(0, len(path)):
-                        #     out = f'{path[p][0]}'
-                        #     f.write(out)
-                        #     f.write('\n')
-                        #     put = f'{path[p][1]}'
-                        #     f.write(put)
-                        #     f.write('\n')
+                            print(float(path[p][1]))
+                        # print("path[2]:")
+                        for p in range(0, len(path)):
+                            print(float(path[p][2]))
 
-                        #  f.close()
 
-                    # for p in range(0,path_lengths[i][j]):
-                    # 	print (paths[i][j][p][0])
-                    # np.savetxt(a_file, paths[i][j][p][0])
-                    # a_file.close()
-
-                    # print ("Actual path[1]:")
-                    # for p in range(0,path_lengths[i][j]):
-                    # 	print (paths[i][j][p][1])
                     else:
                         sp = 0
                         indicator = 0
@@ -367,6 +350,9 @@ def main(args):
                                     print("new_path[1]:")
                                     for p in range(0, len(path)):
                                         print(path[p][1])
+                                    print("new_path[2]:")
+                                    for p in range(0, len(path)):
+                                        print(path[p][2])
                                     print("Actual path[0]:")
                                     for p in range(0, path_lengths[i][j]):
                                         print(paths[i][j][p][0])
@@ -375,6 +361,10 @@ def main(args):
                                     for p in range(0, path_lengths[i][j]):
                                         print(paths[i][j][p][1])
                                         Y.append(paths[i][j][p][1])
+                                    print("Actual path[2]:")
+                                    for p in range(0, path_lengths[i][j]):
+                                        print(paths[i][j][p][2])
+                                        z.append(paths[i][j][p][2])
                                 else:
                                     print("path found, dont worry")
 
@@ -390,6 +380,8 @@ def main(args):
         f.write(f'{X[i]}')
         f.write('\n')
         f.write(f'{Y[i]}')
+        f.write('\n')
+        f.write(f'{z[i]}')
         f.write('\n')
     f.close()
 

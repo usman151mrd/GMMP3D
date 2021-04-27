@@ -34,6 +34,8 @@ def main(args):
 
     # Build data loader
     dataset, targets = load_dataset()
+    print("Dataset shape : ", dataset.shape)
+    print("targets shape", targets.shape)
 
     # Build the models
     mlp = MLP(args.input_size, args.output_size)
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_step', type=int, default=1000, help='step size for saving trained models')
 
     # Model parameters
-    parser.add_argument('--input_size', type=int, default=32, help='dimension of the input vector')
+    parser.add_argument('--input_size', type=int, default=34, help='dimension of the input vector')
     parser.add_argument('--output_size', type=int, default=3, help='dimension of the input vector')
     parser.add_argument('--hidden_size', type=int, default=256, help='dimension of lstm hidden states')
     parser.add_argument('--num_layers', type=int, default=4, help='number of layers in lstm')
